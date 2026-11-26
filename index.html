@@ -175,10 +175,13 @@
 
     <div class="pricing-strip">
       <div>
-        <strong>Upgrade to AI Quota Guard Pro ($9/mo or $29 lifetime)</strong>
-        <div class="muted">Unlock CLI auto-sync for Codex/Claude/Gemini logs, Slack/Discord webhook alerts, and team CSV billing reports.</div>
+        <strong>Upgrade to AI Quota Guard Pro &amp; Survival Kit ($19 USD / NT$590)</strong>
+        <div class="muted">Get the Multi-Model Codex 6.2 Sol/Astra Orchestrator + Live GitHub Bounty Radar CLI and support ongoing Pro features.</div>
       </div>
-      <button id="proBtn">Get Pro License</button>
+      <div class="actions">
+        <a href="https://cycster3.gumroad.com/l/ydgewu" target="_blank" rel="noopener" style="text-decoration:none"><button id="proBtn">Buy on Gumroad ($19)</button></a>
+        <a href="https://portaly.cc/devsurvival" target="_blank" rel="noopener" style="text-decoration:none"><button class="secondary">台灣商店 (Portaly)</button></a>
+      </div>
     </div>
   </div>
 
@@ -316,10 +319,6 @@
 
     document.getElementById("exportJsonBtn").addEventListener("click", () => {
       download("ai-quota-guard.json", JSON.stringify(state, null, 2), "application/json");
-    });
-
-    document.getElementById("proBtn").addEventListener("click", () => {
-      alert("Connect your Lemon Squeezy / Stripe checkout URL in index.html before deploying to Cloudflare Pages or Vercel!");
     });
 
     render();
