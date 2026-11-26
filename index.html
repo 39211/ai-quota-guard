@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Quota Guard — Multi-Model Cost & Burn-Rate Studio</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --panel: #131a26;
+      --panel-2: #1a2333;
+      --border: #263248;
+      --text: #e6edf7;
+      --muted: #8b9bb4;
+      --accent: #38bdf8;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --red: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
+      padding-bottom: 18px; border-bottom: 1px solid var(--border);
+    }
+    .brand h1 { font-size: 1.5rem; letter-spacing: -0.02em; }
+    .brand p { color: var(--muted); font-size: 0.9rem; }
+    .badge {
+      background: rgba(56, 189, 248, 0.14); color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+    }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px;
+    }
+    .kpi-label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi-val { font-size: 1.75rem; font-weight: 700; margin-top: 6px; }
+    .kpi-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .layout { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 18px; }
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+    h2 { font-size: 1.05rem; margin-bottom: 14px; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 5px; }
+    select, input {
+      width: 100%; background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 9px 11px; font-size: 0.9rem; margin-bottom: 12px;
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button {
+      background: var(--accent); color: #06101b; border: none;
+      border-radius: 8px; padding: 10px 14px; font-weight: 600;
+      cursor: pointer; font-size: 0.9rem;
+    }
+    button.secondary {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    }
+    button.danger { background: rgba(248,113,113,0.18); color: var(--red); border: 1px solid rgba(248,113,113,0.35); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+    .bar-bg { width: 100%; height: 10px; background: var(--panel-2); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+    .bar-fill { height: 100%; background: var(--green); transition: width 0.25s ease; }
+    .pill {
+      display: inline-block; padding: 2px 8px; border-radius: 999px;
+      font-size: 0.74rem; background: var(--panel-2); border: 1px solid var(--border);
+    }
+    .pricing-strip {
+      margin-top: 22px; background: linear-gradient(135deg, rgba(56,189,248,0.10), rgba(52,211,153,0.08));
+      border: 1px solid rgba(56,189,248,0.3); border-radius: 12px; padding: 18px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+    }
+    .muted { color: var(--muted); font-size: 0.86rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>AI Quota Guard</h1>
+        <p>Multi-Model Token, Cache &amp; Monthly Burn-Rate Studio (Gemini 4 Neon · GPT-6.2 Sol/Astra · Claude)</p>
+      </div>
+      <div class="badge">100% Local · Zero Telemetry · Pro Ready</div>
+    </header>
+
+    <div class="grid-4">
+      <div class="card">
+        <div class="kpi-label">Logged Spend</div>
+        <div class="kpi-val" id="kpiSpend">$0.00</div>
+        <div class="kpi-sub" id="kpiBudgetPct">0% of monthly budget</div>
+        <div class="bar-bg"><div class="bar-fill" id="budgetBar" style="width:0%"></div></div>
+      </div>
+      <div class="card">
+        <div class="kpi-label">Cache Savings</div>
+        <div class="kpi-val" id="kpiSaved" style="color:var(--green)">$0.00</div>
+        <div class="kpi-sub">Saved via prompt caching</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label">Projected 30-Day Burn</div>
+        <div class="kpi-val" id="kpiProjected">$0.00</div>
+        <div class="kpi-sub">Based on active session mix</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label">Cheapest Route Hint</div>
+        <div class="kpi-val" id="kpiHint" style="font-size:1.1rem;color:var(--accent)">—</div>
+        <div class="kpi-sub">Auto-optimization suggestion</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <h2>Log Usage / Simulate Workload</h2>
+        <label for="budgetInput">Monthly Budget Cap (USD)</label>
+        <input id="budgetInput" type="number" min="5" step="5" value="100" />
+
+        <label for="modelSelect">Model</label>
+        <select id="modelSelect"></select>
+
+        <div class="row-2">
+          <div>
+            <label for="inTokens">Input Tokens (K)</label>
+            <input id="inTokens" type="number" min="0" step="10" value="250" />
+          </div>
+          <div>
+            <label for="cachedPct">Cached Input (%)</label>
+            <input id="cachedPct" type="number" min="0" max="100" step="5" value="40" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label for="outTokens">Output Tokens (K)</label>
+            <input id="outTokens" type="number" min="0" step="5" value="35" />
+          </div>
+          <div>
+            <label for="taskLabel">Workload Tag</label>
+            <input id="taskLabel" type="text" value="Bounty PR Sprint" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="addBtn">+ Add Entry</button>
+          <button id="exportCsvBtn" class="secondary">Export CSV</button>
+          <button id="exportJsonBtn" class="secondary">Export JSON</button>
+          <button id="clearBtn" class="danger">Reset</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Session Ledger &amp; Cost Breakdown</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Workload</th>
+              <th>Model</th>
+              <th>In / Out (K)</th>
+              <th>Cost</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pricing-strip">
+      <div>
+        <strong>Upgrade to AI Quota Guard Pro ($9/mo or $29 lifetime)</strong>
+        <div class="muted">Unlock CLI auto-sync for Codex/Claude/Gemini logs, Slack/Discord webhook alerts, and team CSV billing reports.</div>
+      </div>
+      <button id="proBtn">Get Pro License</button>
+    </div>
+  </div>
+
+  <script>
+    // Pricing per 1M tokens (USD): { in, cachedIn, out }
+    const MODELS = {
+      "gpt-6.2-sol": { label: "GPT-6.2 Sol (Codex)", in: 2.00, cachedIn: 0.50, out: 10.00 },
+      "gpt-6.2-astra": { label: "GPT-6.2 Astra (Flagship)", in: 6.00, cachedIn: 1.50, out: 24.00 },
+      "gemini-4-neon": { label: "Gemini 4 Neon", in: 1.50, cachedIn: 0.35, out: 8.00 },
+      "claude-sonnet": { label: "Claude Sonnet", in: 3.00, cachedIn: 0.30, out: 15.00 },
+      "claude-opus": { label: "Claude Opus", in: 15.00, cachedIn: 1.50, out: 75.00 }
+    };
+
+    const STORAGE_KEY = "ai_quota_guard_v1";
+    let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {
+      budget: 100,
+      entries: [
+        { id: 1, tag: "Bounty Architecture", model: "gpt-6.2-astra", inK: 180, cachedPct: 50, outK: 22 },
+        { id: 2, tag: "Daily Feature Coding", model: "gpt-6.2-sol", inK: 640, cachedPct: 60, outK: 95 },
+        { id: 3, tag: "Research & Orchestration", model: "gemini-4-neon", inK: 520, cachedPct: 45, outK: 60 }
+      ]
+    };
+
+    const modelSelect = document.getElementById("modelSelect");
+    Object.entries(MODELS).forEach(([id, m]) => {
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = `${m.label} ($${m.in}/$${m.out} per 1M)`;
+      modelSelect.appendChild(opt);
+    });
+
+    const budgetInput = document.getElementById("budgetInput");
+    budgetInput.value = state.budget;
+
+    function calcEntry(e) {
+      const m = MODELS[e.model] || MODELS["gpt-6.2-sol"];
+      const inM = e.inK / 1000;
+      const outM = e.outK / 1000;
+      const cachedFrac = Math.min(1, Math.max(0, (e.cachedPct || 0) / 100));
+      const costUncached = inM * m.in + outM * m.out;
+      const costActual = inM * (1 - cachedFrac) * m.in + inM * cachedFrac * m.cachedIn + outM * m.out;
+      return { costActual, saved: Math.max(0, costUncached - costActual) };
+    }
+
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    function render() {
+      const tbody = document.getElementById("ledgerBody");
+      tbody.innerHTML = "";
+      let total = 0, totalSaved = 0, flagshipSpend = 0;
+
+      state.entries.forEach((e) => {
+        const { costActual, saved } = calcEntry(e);
+        total += costActual;
+        totalSaved += saved;
+        if (e.model === "gpt-6.2-astra" || e.model === "claude-opus") flagshipSpend += costActual;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(e.tag)}</td>
+          <td><span class="pill">${MODELS[e.model]?.label || e.model}</span></td>
+          <td>${e.inK}K (${e.cachedPct}% cache) / ${e.outK}K</td>
+          <td><strong>$${costActual.toFixed(2)}</strong></td>
+          <td><button class="secondary" style="padding:4px 8px;font-size:0.75rem" data-del="${e.id}">×</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const budget = Math.max(1, Number(state.budget) || 100);
+      const pct = (total / budget) * 100;
+      document.getElementById("kpiSpend").textContent = `$${total.toFixed(2)}`;
+      document.getElementById("kpiBudgetPct").textContent = `${pct.toFixed(1)}% of $${budget} budget`;
+      const bar = document.getElementById("budgetBar");
+      bar.style.width = `${Math.min(100, pct)}%`;
+      bar.style.background = pct > 90 ? "var(--red)" : pct > 70 ? "var(--amber)" : "var(--green)";
+
+      document.getElementById("kpiSaved").textContent = `$${totalSaved.toFixed(2)}`;
+      document.getElementById("kpiProjected").textContent = `$${(total * 4.3).toFixed(2)}`;
+
+      const hintEl = document.getElementById("kpiHint");
+      if (flagshipSpend > total * 0.45 && total > 0) {
+        hintEl.textContent = "Route routine tasks to Sol/Neon (-45%)";
+      } else if (total === 0) {
+        hintEl.textContent = "Add a workload to analyze";
+      } else {
+        hintEl.textContent = "Balanced Sol/Astra/Neon mix";
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    document.getElementById("addBtn").addEventListener("click", () => {
+      state.entries.unshift({
+        id: Date.now(),
+        tag: document.getElementById("taskLabel").value.trim() || "Untitled Task",
+        model: modelSelect.value,
+        inK: Math.max(0, Number(document.getElementById("inTokens").value) || 0),
+        cachedPct: Math.min(100, Math.max(0, Number(document.getElementById("cachedPct").value) || 0)),
+        outK: Math.max(0, Number(document.getElementById("outTokens").value) || 0)
+      });
+      save(); render();
+    });
+
+    budgetInput.addEventListener("input", () => {
+      state.budget = Math.max(5, Number(budgetInput.value) || 100);
+      save(); render();
+    });
+
+    document.getElementById("ledgerBody").addEventListener("click", (ev) => {
+      const id = ev.target.getAttribute("data-del");
+      if (!id) return;
+      state.entries = state.entries.filter(e => String(e.id) !== id);
+      save(); render();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      state.entries = []; save(); render();
+    });
+
+    function download(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    document.getElementById("exportCsvBtn").addEventListener("click", () => {
+      const rows = [["Workload","Model","InputK","CachedPct","OutputK","CostUSD"]];
+      state.entries.forEach(e => rows.push([e.tag, e.model, e.inK, e.cachedPct, e.outK, calcEntry(e).costActual.toFixed(4)]));
+      download("ai-quota-guard.csv", rows.map(r => r.join(",")).join("\n"), "text/csv");
+    });
+
+    document.getElementById("exportJsonBtn").addEventListener("click", () => {
+      download("ai-quota-guard.json", JSON.stringify(state, null, 2), "application/json");
+    });
+
+    document.getElementById("proBtn").addEventListener("click", () => {
+      alert("Connect your Lemon Squeezy / Stripe checkout URL in index.html before deploying to Cloudflare Pages or Vercel!");
+    });
+
+    render();
+  </script>
+</body>
+</html>
